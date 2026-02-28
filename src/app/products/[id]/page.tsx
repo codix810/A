@@ -114,8 +114,8 @@ export default function Page() {
     ${product.price.toFixed(2)}
   </span>
 
-  {product.oldPrice && product.discount > 0 && (
-    <>
+{product.oldPrice && (product.discount ?? 0) > 0 && (
+      <>
       <span className="line-through text-gray-400">
         ${product.oldPrice}
       </span>
