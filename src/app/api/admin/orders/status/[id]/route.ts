@@ -4,21 +4,25 @@ import Order from "../../../../../../models/Order";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  const order = await Order.findById(params.id);
+  const id = context.params.id;
 
-  if (!order)
-    return NextResponse.json({ error: "Not found" });
+  const order = await Order.findById(id);
+
+  if (!order) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   /* cycle status */
   if (order.status === "pending")
     order.status = "shipped";
   else if (order.status === "shipped")
     order.status = "delivered";
-  else order.status = "pending";
+  else
+    order.status = "pending";
 
   await order.save();
 
