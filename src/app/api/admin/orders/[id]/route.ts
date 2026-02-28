@@ -4,11 +4,13 @@ import Order from "../../../../../models/Order";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  const order = await Order.findById(params.id);
+  const id = context.params.id;
+
+  const order = await Order.findById(id);
 
   return NextResponse.json(order);
 }
