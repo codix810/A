@@ -4,11 +4,13 @@ import Message from "../../../../../models/Message";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  await Message.findByIdAndDelete(params.id);
+  const id = context.params.id;
+
+  await Message.findByIdAndDelete(id);
 
   return NextResponse.json({ success: true });
 }
