@@ -4,14 +4,16 @@ import Message from "../../../../../../models/Message";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   const body = await req.json();
 
   await connectDB();
 
+  const id = context.params.id;
+
   const message = await Message.findByIdAndUpdate(
-    params.id,
+    id,
     {
       reply: body.reply,
       repliedAt: new Date(),
