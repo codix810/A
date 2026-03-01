@@ -5,7 +5,7 @@ import Products from "../components/section/Products";
 import { useEffect, useState } from "react";
 // import Api from '@/app/api/products/route'
 import { useCart } from "../lib/CartContext";
-import {typeProduct} from '../lib/type'
+import { typeProduct } from "../lib/type";
 
 export default function Home() {
   const [products, setProducts] = useState<typeProduct[]>([]);
@@ -14,6 +14,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      
       try {
         const res = await fetch("/api/products"); 
 
@@ -35,10 +36,9 @@ export default function Home() {
     <>
       <Hero />
 
-      {products.slice(0,4).length > 0 && (
-          <Products products={products.slice(0, 4)} titlename={"NEW ARRIVALS"} />
-      )}
-
+{products[0] && (
+  <Products products={products.slice(0,4)} titlename="NEW ARRIVALS" />
+)}
       {products.slice(4,8).length > 0 && (
         <Products products={products.slice(4, 8)} titlename={"TOP SELLING"} />
       )}
