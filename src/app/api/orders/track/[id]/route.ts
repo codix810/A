@@ -4,17 +4,20 @@ import Order from "../../../../../models/Order";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  const order = await Order.findById(params.id);
+  const id = context.params.id;
 
-  if (!order)
+  const order = await Order.findById(id);
+
+  if (!order) {
     return NextResponse.json(
       { error: "Order not found" },
       { status: 404 }
     );
+  }
 
   return NextResponse.json(order);
 }
