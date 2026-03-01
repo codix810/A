@@ -4,16 +4,22 @@ import Product from "../../../../models/Product";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  const product = await Product.findById(params.id);
+  const id = context.params.id;
 
-  if (!product)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const product = await Product.findById(id);
 
-  /* ===== نفس منطق offers ===== */
+  if (!product) {
+    return NextResponse.json(
+      { error: "Not found" },
+      { status: 404 }
+    );
+  }
+
+  /* نفس منطق offers */
   const discount = product.hasOffer ? 20 : 0;
 
   const newPrice =
@@ -24,8 +30,8 @@ export async function GET(
     title: product.name,
     description: product.description,
     images: product.images,
-    price: newPrice,        // ✅ السعر بعد الخصم
-    oldPrice: product.price, // ✅ السعر قبل الخصم
+    price: newPrice,       // السعر بعد الخصم
+    oldPrice: product.price,
     discount,
     colors: product.colors,
     sizes: product.sizes,
