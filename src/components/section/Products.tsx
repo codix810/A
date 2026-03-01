@@ -21,17 +21,14 @@ type Product = {
   colors?: string[];
   sizes?: string[];
 };
-type ProductsProps ={
-    products:Product[];
-    titlename: string;
-    // review
-    // productToCart: (product: typeProduct) => void;
-}
 
+type ProductsProps = {
+  products: typeProduct[];
+  titlename: string;
+};
 
 const Products = ({products,titlename  }:ProductsProps ) => {
    const {addToCart} :any = useCart()
-
     
     // const [{   price, category , image}] = products;
   return (
