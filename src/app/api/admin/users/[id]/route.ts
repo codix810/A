@@ -4,11 +4,13 @@ import UserA from "../../../../../models/userA";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   await connectDB();
 
-  await UserA.findByIdAndDelete(params.id);
+  const id = context.params.id;
+
+  await UserA.findByIdAndDelete(id);
 
   return NextResponse.json({ message: "User deleted" });
 }
