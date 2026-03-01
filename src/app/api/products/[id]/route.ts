@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../../lib/db";
 import Product from "../../../../models/Product";
 
 export async function GET(
-  req: Request,
-  context: any
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // ✅ params بقت Promise
 ) {
   await connectDB();
 
-  const id = context.params.id;
+  // ✅ لازم await
+  const { id } = await context.params;
 
   const product = await Product.findById(id);
 
@@ -19,7 +20,7 @@ export async function GET(
     );
   }
 
-  /* نفس منطق offers */
+  /* offer logic */
   const discount = product.hasOffer ? 20 : 0;
 
   const newPrice =
@@ -30,7 +31,7 @@ export async function GET(
     title: product.name,
     description: product.description,
     images: product.images,
-    price: newPrice,       // السعر بعد الخصم
+    price: newPrice,
     oldPrice: product.price,
     discount,
     colors: product.colors,
