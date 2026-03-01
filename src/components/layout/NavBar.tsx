@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+
 import { GrCart } from 'react-icons/gr'
 import { LiaUserCircleSolid } from 'react-icons/lia'
 import { FiSearch } from "react-icons/fi"
@@ -12,7 +13,27 @@ import { useCart } from '../../lib/CartContext'
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const {cart}: any  = useCart();
+  const [user, setUser] = useState<any>(null);
+const [checkingAuth, setCheckingAuth] = useState(true);
+
   const cartCount :number = cart.length;
+
+  useEffect(() => {
+  const checkUser = async () => {
+    try {
+      const res = await fetch("/api/me");
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      }
+    } catch {}
+
+    setCheckingAuth(false);
+  };
+
+  checkUser();
+}, []);
 
   const links = [
     { title: "Home", link: "/" },
@@ -26,14 +47,16 @@ const NavBar = () => {
   return (
     <div className="w-full relative">
       {/* الشريط الأسود */}
-      <div className="bg-black z-50 relative">
-        <p className="text-white text-center text-sm py-3">
-          sign up and get 20% off to your first order{" "}
-          <Link className="font-medium underline" href={"/register"}>
-            Sign Up
-          </Link>
-        </p>
-      </div>
+{!checkingAuth && !user && (
+  <div className="bg-black z-50 relative">
+    <p className="text-white text-center text-sm py-3">
+      sign up and get 20% off to your first order{" "}
+      <Link className="font-medium underline" href={"/register"}>
+        Sign Up
+      </Link>
+    </p>
+  </div>
+)}
 
       {/* الناف بار */}
       <div className="flex items-center justify-around text-black py-4 px-4 shadow-xl relative z-50 bg-white">
