@@ -1,33 +1,60 @@
-//middleware.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import type { NextRequest } from "next/server";
 
-export async function middleware(req: any) {
-  const token = req.cookies.get("token")?.value;
-
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
+function getUser(token?: string) {
   try {
-    const decoded: any = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    );
+    if (!token) return null;
 
-    if (req.nextUrl.pathname.startsWith("/admin")) {
-      if (decoded.role !== "admin") {
-        return NextResponse.redirect(new URL("/", req.url));
-      }
-    }
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
 
-    return NextResponse.next();
+    return decoded;
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return null;
   }
 }
 
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
+  const user = getUser(token);
+
+  const isAuth = !!user;
+  const role = user?.role;
+
+  const { pathname } = req.nextUrl;
+
+  /* ========= ADMIN ========= */
+
+  if (pathname.startsWith("/admin")) {
+    if (!isAuth || role !== "admin") {
+      return NextResponse.rewrite(new URL("/404", req.url));
+    }
+  }
+
+  /* ========= PROFILE ========= */
+
+  if (pathname.startsWith("/profile")) {
+    if (!isAuth) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
+  /* ========= AUTH PAGES ========= */
+
+  if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+    if (isAuth) {
+      return NextResponse.redirect(new URL("/profile", req.url));
+    }
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/profile/:path*",
+    "/login",
+    "/register",
+  ],
 };
