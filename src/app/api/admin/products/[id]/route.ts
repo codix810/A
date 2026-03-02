@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../../../lib/db";
 import Product from "../../../../../models/Product";
 
 /* DELETE PRODUCT */
 export async function DELETE(
-  req: Request,
-  context: any
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
 
-  const id = context.params.id;
+  const { id } = await params;
 
   await Product.findByIdAndDelete(id);
 
@@ -18,14 +18,14 @@ export async function DELETE(
 
 /* UPDATE PRODUCT */
 export async function PUT(
-  req: Request,
-  context: any
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const body = await req.json();
 
   await connectDB();
 
-  const id = context.params.id;
+  const { id } = await params;
 
   const product = await Product.findByIdAndUpdate(
     id,
