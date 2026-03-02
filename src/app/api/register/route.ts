@@ -1,77 +1,34 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import connectDB from "../../../lib/db";
-import UserA from "../../../models/userA";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-export async function POST(req: Request) {
+export async function middleware(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   try {
-    const body = await req.json();
-    const { name, email, password } = body;
-
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400 }
-      );
-    }
-
-    await connectDB();
-
-    const existingUser = await UserA.findOne({ email });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "Email already exists" },
-        { status: 400 }
-      );
-    }
-
-    const usersCount = await UserA.countDocuments();
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const role = usersCount === 0 ? "admin" : "user";
-
-    // ✅ احفظ المستخدم في متغير
-    const user = await UserA.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
-
-    // ✅ انشاء التوكن
-    const token = jwt.sign(
-      {
-        email: user.email,
-        role: user.role,
-        userId: user._id,
-      },
-  
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
+    const secret = new TextEncoder().encode(
+      process.env.JWT_SECRET
     );
 
-    // ✅ cookies في Next 15 لازم await
-    const cookieStore = await cookies();
+    const { payload } = await jwtVerify(token, secret);
 
-    cookieStore.set("token", token, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "lax",
-    });
+    // حماية الادمن
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+      if (payload.role !== "admin") {
+        return NextResponse.redirect(new URL("/", req.url));
+      }
+    }
 
-    return NextResponse.json({
-      message: "Account created successfully",
-    });
-  } catch (error: any) {
-    console.log("REGISTER ERROR:", error);
-
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.next();
+  } catch {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
+
+export const config = {
+  matcher: ["/admin/:path*"],
+};
